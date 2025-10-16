@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: agent_app
+  ai:
+    dashscope:
+      api-key: sk-ffc366bfcaee4a84be82699b358993c1
+      chat:
+        options:
+          model: qwen-max-2025-01-25
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.zqw.agent_app.controller
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
