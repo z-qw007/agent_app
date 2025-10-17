@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zqw.agent_app.mapper.UserMapper">
+
+    <resultMap id="UserResultMap" type="com.zqw.agent_app.model.po.UserPO">
+        <result property="userName" column="user_name" />
+        <result property="password" column="password" />
+        <result property="email" column="email" />
+        <result property="createdTime" column="created_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <!--    用户注册,表中新增用户    -->
+    <insert id="addUser" parameterType="com.zqw.agent_app.model.po.UserPO">
+        insert into user (user_name, password, email, created_time, update_time)
+        values (#{userName}, #{password}, #{email}, #{createdTime}, #{updateTime})
+    </insert>
+
+    <!--    用户登录,根据用户名比对密码    -->
+    <select id="getUserByUserName" resultType="com.zqw.agent_app.model.dto.UserLoginResponseDTO" parameterType="String">
+        select user_name, password, email
+        from user
+        where user_name = #{userName}
+    </select>
+    <!--    检测邮箱是否已注册    -->
+    <select id="getUserByEmail" resultType="com.zqw.agent_app.model.dto.UserLoginResponseDTO" parameterType="String">
+        select user_name, password, email
+        from user
+        where email = #{userEmail}
+    </select>
+
+</mapper>

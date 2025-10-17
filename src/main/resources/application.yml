@@ -7,10 +7,18 @@ spring:
       chat:
         options:
           model: qwen-max-2025-01-25
+  datasource:
+    url: jdbc:mysql://1.13.183.61:13306/agent_app?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
 server:
   port: 8123
   servlet:
     context-path: /api
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
 
 springdoc:
   swagger-ui:
