@@ -3,7 +3,6 @@ package com.zqw.agent_app.service;
 import com.zqw.agent_app.common.Result;
 import com.zqw.agent_app.model.dto.UserLoginRequestDTO;
 import com.zqw.agent_app.model.dto.UserRegisterRequestDTO;
-import org.springframework.stereotype.Service;
 
 public interface UserService {
 

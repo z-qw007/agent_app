@@ -15,6 +15,8 @@ create table agent
 )
     comment '智能体';
 
+ALTER TABLE agent ADD COLUMN usage_count INT DEFAULT 0 COMMENT '模型使用/点击次数';
+
 INSERT INTO agent
 (user_id, agent_name, description, prompt, create_time, update_time)
 VALUES

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zqw.agent_app.mapper.AgentMapper">
+
+    <resultMap id="AgentResultMap" type="com.zqw.agent_app.model.po.AgentPO">
+        <result property="agentId" column="agent_id" />
+        <result property="agentName" column="agent_name" />
+        <result property="userId" column="user_id" />
+        <result property="description" column="description" />
+        <result property="prompt" column="prompt" />
+        <result property="usageCount" column="usage_count" />
+        <result property="createdTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <select id="getAllAgentNum" resultType="int">
+        SELECT COUNT(*)
+        FROM agent
+    </select>
+
+    <select id="getLastWeekAgentNum" resultType="int">
+        SELECT COUNT(*)
+        FROM agent
+        WHERE create_time >= DATE_SUB(CURDATE(), INTERVAL 1 WEEK)
+    </select>
+
+    <select id="getHotModel" resultMap="AgentResultMap">
+        SELECT agent_id, agent_name, usage_count
+        FROM  agent
+        WHERE status = 1
+        ORDER BY usage_count DESC
+        LIMIT 5; -- 筛选出使用次数最多的前5个
+    </select>
+
+</mapper>
