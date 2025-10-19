@@ -18,7 +18,7 @@ public interface UserMapper {
      * @param userName 用户名
      * @return 用户登录响应DTO
      */
-    UserLoginResponseDTO getUserByUserName(String userName);
+    UserPO getUserByUserName(String userName);
 
-    UserLoginResponseDTO getUserByEmail(String userEmail);
+    UserPO getUserByEmail(String userEmail);
 }

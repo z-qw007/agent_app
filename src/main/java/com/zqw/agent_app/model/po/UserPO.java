@@ -12,9 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserPO {
 
+    private int userId;
     private String userName;
     private String email;
-    private String password;
+    private String userPassword;
     private DateTime createdTime;
     private DateTime updateTime;
 

@@ -2,6 +2,7 @@ package com.zqw.agent_app.service;
 
 import com.zqw.agent_app.common.Result;
 import com.zqw.agent_app.model.dto.UserLoginRequestDTO;
+import com.zqw.agent_app.model.dto.UserLoginResponseDTO;
 import com.zqw.agent_app.model.dto.UserRegisterRequestDTO;
 
 public interface UserService {
@@ -18,5 +19,5 @@ public interface UserService {
      * @param userLoginRequestDTO 用户登录实体
      * @return 登录结果
      */
-    Result<Boolean> login(UserLoginRequestDTO userLoginRequestDTO);
+    Result<UserLoginResponseDTO> login(UserLoginRequestDTO userLoginRequestDTO);
 }

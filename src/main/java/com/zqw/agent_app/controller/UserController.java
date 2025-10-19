@@ -2,6 +2,7 @@ package com.zqw.agent_app.controller;
 
 import com.zqw.agent_app.common.Result;
 import com.zqw.agent_app.model.dto.UserLoginRequestDTO;
+import com.zqw.agent_app.model.dto.UserLoginResponseDTO;
 import com.zqw.agent_app.model.dto.UserRegisterRequestDTO;
 import com.zqw.agent_app.service.UserService;
 import jakarta.annotation.Resource;
@@ -35,7 +36,7 @@ public class UserController {
      * @return 登录结果
      */
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public Result<Boolean> login(@RequestBody UserLoginRequestDTO userLoginRequestDTO) {
+    public Result<UserLoginResponseDTO> login(@RequestBody UserLoginRequestDTO userLoginRequestDTO) {
         return userService.login(userLoginRequestDTO);
     }
 }

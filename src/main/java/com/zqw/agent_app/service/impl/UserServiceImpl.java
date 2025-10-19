@@ -10,7 +10,9 @@ import com.zqw.agent_app.model.dto.UserLoginResponseDTO;
 import com.zqw.agent_app.model.dto.UserRegisterRequestDTO;
 import com.zqw.agent_app.model.po.UserPO;
 import com.zqw.agent_app.service.UserService;
+import com.zqw.agent_app.utils.JwtUtil;
 import jakarta.annotation.Resource;
+import org.apache.catalina.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,8 +35,8 @@ public class UserServiceImpl implements UserService {
 
         String userName = userRegisterRequestDTO.getUserName();
         // 用户名不可重复
-        UserLoginResponseDTO userLoginResponseDTO = userMapper.getUserByUserName(userName);
-        if (userLoginResponseDTO != null) {
+        UserPO userPO = userMapper.getUserByUserName(userName);
+        if (userPO != null) {
             throw new BusinessException(ResultCode.VALIDATE_FAILED, "用户名已存在");
         }
 
@@ -45,44 +47,60 @@ public class UserServiceImpl implements UserService {
         }
 
         // 校验邮箱是否重复注册
-        userLoginResponseDTO = userMapper.getUserByEmail(userEmail);
-        if (userLoginResponseDTO != null) {
+        userPO = userMapper.getUserByEmail(userEmail);
+        if (userPO != null) {
             throw new BusinessException(ResultCode.EMAIL_ALREADY_EXISTS, "邮箱已存在");
         }
 
         // 密码加密
         String encodePassword = passwordEncoder.encode(userRegisterRequestDTO.getUserPassword());
 
-        // 构建PO
-        UserPO userPO = UserPO.builder()
+        UserPO newUserPO = new UserPO();
+        newUserPO = UserPO.builder()
                 .userName(userName)
                 .email(userEmail)
-                .password(encodePassword)
+                .userPassword(encodePassword)
                 .createdTime(new DateTime())
                 .updateTime(new DateTime())
                 .build();
 
         // DAO层操作
-        int result = userMapper.addUser(userPO);
+        int result = userMapper.addUser(newUserPO);
 
         return Result.success(result);
     }
 
     @Override
-    public Result<Boolean> login(UserLoginRequestDTO userLoginRequestDTO) {
+    public Result<UserLoginResponseDTO> login(UserLoginRequestDTO userLoginRequestDTO) {
 
-        UserLoginResponseDTO userLoginResponseDTO = userMapper.getUserByUserName(userLoginRequestDTO.getUserName());
-        if (userLoginResponseDTO == null) {
+        UserPO userPO = userMapper.getUserByUserName(userLoginRequestDTO.getUserName());
+        if (userPO == null) {
             throw new BusinessException(ResultCode.VALIDATE_FAILED, "用户名不存在");
         }
 
-        String password = userLoginRequestDTO.getPassword();
+        String password = userLoginRequestDTO.getUserPassword();
+        if (password == null) {
+            throw new BusinessException(ResultCode.VALIDATE_FAILED, "密码不能为空");
+        }
         // 校验密码
-        if (!passwordEncoder.matches(password, userLoginResponseDTO.getPassword())) {
+        if (!passwordEncoder.matches(password, userPO.getUserPassword())) {
             throw new BusinessException(ResultCode.VALIDATE_FAILED, "密码错误");
         }
 
-        // 校验通过,登录成功
-        return Result.success(true);
+        // 生成token
+        String token = JwtUtil.generateToken(
+                userPO.getUserId(),
+                userPO.getUserName()
+        );
+
+        // 构建返回DTO
+        UserLoginResponseDTO userLoginResponseDTO = UserLoginResponseDTO.builder()
+                .token(token)
+                .userId(userPO.getUserId())
+                .userName(userPO.getUserName())
+                .build();
+
+        // 校验通过,登录成功,返回包含token的Result
+        return Result.success(userLoginResponseDTO);
     }
 }

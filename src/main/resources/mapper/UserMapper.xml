@@ -5,8 +5,9 @@
 <mapper namespace="com.zqw.agent_app.mapper.UserMapper">
 
     <resultMap id="UserResultMap" type="com.zqw.agent_app.model.po.UserPO">
+        <id property="userId" column="user_id" />
         <result property="userName" column="user_name" />
-        <result property="password" column="password" />
+        <result property="userPassword" column="password" />
         <result property="email" column="email" />
         <result property="createdTime" column="created_time" />
         <result property="updateTime" column="update_time" />
@@ -15,12 +16,12 @@
     <!--    用户注册,表中新增用户    -->
     <insert id="addUser" parameterType="com.zqw.agent_app.model.po.UserPO">
         insert into user (user_name, password, email, created_time, update_time)
-        values (#{userName}, #{password}, #{email}, #{createdTime}, #{updateTime})
+        values (#{userName}, #{userPassword}, #{email}, #{createdTime}, #{updateTime})
     </insert>
 
     <!--    用户登录,根据用户名比对密码    -->
-    <select id="getUserByUserName" resultType="com.zqw.agent_app.model.dto.UserLoginResponseDTO" parameterType="String">
-        select user_name, password, email
+    <select id="getUserByUserName" resultMap="UserResultMap" parameterType="String">
+        select user_id, user_name, password, email
         from user
         where user_name = #{userName}
     </select>
