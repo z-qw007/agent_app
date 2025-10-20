@@ -1,6 +1,5 @@
 package com.zqw.agent_app.mapper;
 
-import com.zqw.agent_app.model.dto.UserLoginResponseDTO;
 import com.zqw.agent_app.model.po.UserPO;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -20,5 +19,24 @@ public interface UserMapper {
      */
     UserPO getUserByUserName(String userName);
 
+    /**
+     * 根据邮箱查询用户信息
+     * @param userEmail 用户邮箱
+     * @return 用户登录响应DTO
+     */
     UserPO getUserByEmail(String userEmail);
+
+    /**
+     * 根据用户ID查询用户信息
+     * @param userId 用户ID
+     * @return 用户登录响应DTO
+     */
+    UserPO getUserById(int userId);
+
+    /**
+     * 更新用户信息
+     * @param newUserPO 用户实体
+     * @return 更新结果
+     */
+    int updateUser(UserPO newUserPO);
 }

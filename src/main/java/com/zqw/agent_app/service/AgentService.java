@@ -17,5 +17,9 @@ public interface AgentService {
      */
     int getLastWeekAgentNum();
 
+    /**
+     * 获取热门模型
+     * @return 热门模型列表
+     */
     List<AgentPO> getHotModel();
 }

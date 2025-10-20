@@ -11,6 +11,7 @@
         <result property="email" column="email" />
         <result property="createdTime" column="created_time" />
         <result property="updateTime" column="update_time" />
+        <result property="modelCount" column="model_count" />
     </resultMap>
 
     <!--    用户注册,表中新增用户    -->
@@ -18,6 +19,19 @@
         insert into user (user_name, password, email, created_time, update_time)
         values (#{userName}, #{userPassword}, #{email}, #{createdTime}, #{updateTime})
     </insert>
+    <update id="updateUser" parameterType="com.zqw.agent_app.model.po.UserPO">
+        update user
+        <set>
+            <if test="userName != null and userName != ''">
+                user_name = #{userName},
+            </if>
+            <if test="email != null and email != ''">
+                email = #{email},
+            </if>
+            update_time = NOW()
+        </set>
+        where user_id = #{userId}
+    </update>
 
     <!--    用户登录,根据用户名比对密码    -->
     <select id="getUserByUserName" resultMap="UserResultMap" parameterType="String">
@@ -26,10 +40,18 @@
         where user_name = #{userName}
     </select>
     <!--    检测邮箱是否已注册    -->
-    <select id="getUserByEmail" resultType="com.zqw.agent_app.model.dto.UserLoginResponseDTO" parameterType="String">
-        select user_name, password, email
+    <select id="getUserByEmail" resultMap="UserResultMap" parameterType="String">
+        select user_id, user_name, password, email
         from user
         where email = #{userEmail}
+    </select>
+    <select id="getUserById" resultMap="UserResultMap" parameterType="int">
+        select user_id, user_name, email, created_time, update_time,
+            (select count(*)
+             from agent t
+             where t.user_id = user.user_id) as model_count
+        from user
+        where user_id = #{userId}
     </select>
 
 </mapper>

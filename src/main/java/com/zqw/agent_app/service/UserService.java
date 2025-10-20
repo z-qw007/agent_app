@@ -1,9 +1,7 @@
 package com.zqw.agent_app.service;
 
 import com.zqw.agent_app.common.Result;
-import com.zqw.agent_app.model.dto.UserLoginRequestDTO;
-import com.zqw.agent_app.model.dto.UserLoginResponseDTO;
-import com.zqw.agent_app.model.dto.UserRegisterRequestDTO;
+import com.zqw.agent_app.model.dto.*;
 
 public interface UserService {
 
@@ -20,4 +18,18 @@ public interface UserService {
      * @return 登录结果
      */
     Result<UserLoginResponseDTO> login(UserLoginRequestDTO userLoginRequestDTO);
+
+    /**
+     * 获取用户详情
+     * @param userId 用户id
+     * @return 用户详情
+     */
+    Result<UserInfoDTO> getUserDetail(int userId);
+
+    /**
+     * 修改用户信息
+     * @param userEditRequestDTO 用户更新实体
+     * @return 更新结果
+     */
+    Result<Integer> updateUser(UserEditRequestDTO userEditRequestDTO);
 }

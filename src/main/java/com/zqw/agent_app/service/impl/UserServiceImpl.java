@@ -5,16 +5,15 @@ import com.zqw.agent_app.common.Result;
 import com.zqw.agent_app.common.ResultCode;
 import com.zqw.agent_app.exception.BusinessException;
 import com.zqw.agent_app.mapper.UserMapper;
-import com.zqw.agent_app.model.dto.UserLoginRequestDTO;
-import com.zqw.agent_app.model.dto.UserLoginResponseDTO;
-import com.zqw.agent_app.model.dto.UserRegisterRequestDTO;
+import com.zqw.agent_app.model.dto.*;
 import com.zqw.agent_app.model.po.UserPO;
 import com.zqw.agent_app.service.UserService;
 import com.zqw.agent_app.utils.JwtUtil;
 import jakarta.annotation.Resource;
-import org.apache.catalina.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -60,8 +59,8 @@ public class UserServiceImpl implements UserService {
                 .userName(userName)
                 .email(userEmail)
                 .userPassword(encodePassword)
-                .createdTime(new DateTime())
-                .updateTime(new DateTime())
+                .createdTime(LocalDateTime.now())
+                .updateTime(LocalDateTime.now())
                 .build();
 
         // DAO层操作
@@ -102,5 +101,57 @@ public class UserServiceImpl implements UserService {
 
         // 校验通过,登录成功,返回包含token的Result
         return Result.success(userLoginResponseDTO);
+    }
+
+    @Override
+    public Result<UserInfoDTO> getUserDetail(int userId) {
+        // 校验参数
+        if (userId <= 0) {
+            throw new BusinessException(ResultCode.VALIDATE_FAILED, "用户ID不能为空");
+        }
+
+        // DAO层操作
+        UserPO userPO = userMapper.getUserById(userId);
+        if (userPO == null) {
+            throw new BusinessException(ResultCode.VALIDATE_FAILED, "用户不存在");
+        }
+        // 构建返回DTO
+        UserInfoDTO userInfoDTO = UserInfoDTO.builder()
+                .userId(userPO.getUserId())
+                .userName(userPO.getUserName())
+                .email(userPO.getEmail())
+                .modelCount(userPO.getModelCount())
+                .createTime(userPO.getCreatedTime())
+                .updateTime(userPO.getUpdateTime())
+                .build();
+
+        return Result.success(userInfoDTO);
+    }
+
+    @Override
+    public Result<Integer> updateUser(UserEditRequestDTO userEditRequestDTO) {
+        // 校验参数
+        if (userEditRequestDTO == null) {
+            throw new BusinessException(ResultCode.VALIDATE_FAILED, "用户信息不能为空");
+        }
+
+        int userId = userEditRequestDTO.getUserId();
+        // 校验用户是否存在
+        UserPO userPO = userMapper.getUserById(userId);
+        if (userPO == null) {
+            throw new BusinessException(ResultCode.VALIDATE_FAILED, "用户不存在");
+        }
+
+        // 构造入库类
+        UserPO newUserPO = UserPO.builder()
+                .userId(userId)
+                .userName(userEditRequestDTO.getUserName())
+                .email(userEditRequestDTO.getEmail())
+                .build();
+
+        // DAO层操作
+        int result = userMapper.updateUser(newUserPO);
+
+        return Result.success(result);
     }
 }
