@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zqw.agent_app.mapper.SessionMapper">
+
+    <resultMap id="SessionResultMap" type="com.zqw.agent_app.model.po.SessionPO">
+        <result property="sessionId" column="session_id" />
+        <result property="agentId" column="agent_id" />
+        <result property="userId" column="user_id" />
+        <result property="title" column="title" />
+        <result property="contextSummary" column="context_summary" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+     <insert id="createSession" parameterType="map">
+         <selectKey keyProperty="generatedSessionId" resultType="int" order="AFTER">
+             SELECT LAST_INSERT_ID()
+         </selectKey>
+
+         INSERT INTO chat_session
+         (agent_id, user_id, title, context_summary, create_time, update_time)
+         VALUES
+         (#{agentId}, #{userId}, #{title}, '', NOW(), NOW())
+    </insert>
+
+    <update id="updateSummary">
+        UPDATE
+            chat_session
+        SET
+            context_summary = #{newSummary},
+            update_time = NOW()
+        WHERE
+            session_id = #{sessionId}
+    </update>
+
+    <select id="getById" resultMap="SessionResultMap">
+        select session_id, agent_id, user_id, title, context_summary, create_time, update_time from
+        chat_session
+        where session_id = #{sessionId}
+    </select>
+
+
+</mapper>

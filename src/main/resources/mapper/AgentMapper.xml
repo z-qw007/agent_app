@@ -10,6 +10,7 @@
         <result property="userId" column="user_id" />
         <result property="description" column="description" />
         <result property="prompt" column="prompt" />
+        <result property="configJson" column="config_json" />
         <result property="usageCount" column="usage_count" />
         <result property="createdTime" column="create_time" />
         <result property="updateTime" column="update_time" />
@@ -34,4 +35,19 @@
         LIMIT 5; -- 筛选出使用次数最多的前5个
     </select>
 
+    <select id="getAgentById" resultMap="AgentResultMap">
+        SELECT agent_id, agent_name, user_id, description, prompt, config_json, usage_count
+        FROM agent
+        WHERE agent_id = #{agentId}
+    </select>
+
+    <select id="fetchModel" resultType="com.zqw.agent_app.model.vo.AgentVO">
+        SELECT agent_id, agent_name, description, usage_count
+        FROM agent
+        WHERE status = 1
+        <set>
+            <if test="userId != null">AND user_id = #{userId}</if>
+        </set>
+    </select>
+ 
 </mapper>

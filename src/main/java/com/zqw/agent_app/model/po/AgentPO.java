@@ -17,6 +17,7 @@ public class AgentPO {
     private int userId;
     private String description;
     private String prompt;
+    private String configJson;
     private DateTime createdTime;
     private DateTime updateTime;
     private int usageCount;
