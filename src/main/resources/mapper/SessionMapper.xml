@@ -14,11 +14,7 @@
         <result property="updateTime" column="update_time" />
     </resultMap>
 
-     <insert id="createSession" parameterType="map">
-         <selectKey keyProperty="generatedSessionId" resultType="int" order="AFTER">
-             SELECT LAST_INSERT_ID()
-         </selectKey>
-
+     <insert id="createSession" parameterType="com.zqw.agent_app.model.po.SessionPO" useGeneratedKeys="true" keyProperty="sessionId">
          INSERT INTO chat_session
          (agent_id, user_id, title, context_summary, create_time, update_time)
          VALUES
@@ -39,6 +35,20 @@
         select session_id, agent_id, user_id, title, context_summary, create_time, update_time from
         chat_session
         where session_id = #{sessionId}
+    </select>
+
+     <select id="getLastSummaryTime" resultType="java.util.Date">
+        SELECT
+            update_time
+        FROM
+            chat_session
+        WHERE
+            session_id = #{sessionId}
+    </select>
+    <select id="selectByAgentId" resultMap="SessionResultMap">
+        select session_id, agent_id, user_id, title, context_summary from
+        chat_session
+        where agent_id = #{agentId}
     </select>
 
 

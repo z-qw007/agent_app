@@ -62,5 +62,38 @@
             t1.create_time ASC
     </select>
 
+    <select id="getMessagesSinceLastSummaryByTime" resultType="com.zqw.agent_app.model.po.MessageLogPO">
+        SELECT
+            message_id, session_id, role, content, create_time
+        FROM
+            message_log
+        WHERE
+            session_id = #{sessionId}
+          AND create_time > #{lastSummaryTime}
+        ORDER BY
+            create_time ASC
+    </select>
+
+    <select id="countMessagesSinceLastSummary" resultType="java.lang.Integer">
+        SELECT
+            COUNT(*)
+        FROM
+            message_log
+        WHERE
+            session_id = #{sessionId}
+          AND create_time > #{lastSummaryTime}
+    </select>
+
+    <select id="getMessageBySessionId" resultMap="MessageResultMap">
+        SELECT
+            session_id, role, content
+        FROM
+            message_log
+        WHERE
+            session_id = #{sessionId}
+        ORDER BY
+            message_id ASC
+    </select>
+
 
 </mapper>

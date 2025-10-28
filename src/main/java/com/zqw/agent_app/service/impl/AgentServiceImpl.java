@@ -29,8 +29,10 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @EnableAsync
 @Service
@@ -76,7 +78,13 @@ public class AgentServiceImpl implements AgentService {
 
         // 确定会话ID (如果传入的sessionId为null，需要创建新的 chat_session 记录并返回新ID)
         if (sessionId == null || sessionId == 0) {
-            sessionId = sessionMapper.createSession(agentId, userId, "新对话");
+            SessionPO sessionPO = new SessionPO().builder()
+                    .agentId(agentId)
+                    .userId(userId)
+                    .title("新对话")
+                    .build();
+            sessionMapper.createSession(sessionPO);
+            sessionId = sessionPO.getSessionId();
         }
 
         // 构建消息列表 (上下文核心逻辑)
@@ -146,11 +154,12 @@ public class AgentServiceImpl implements AgentService {
         messageMapper.insert(userMessageLog);
         messageMapper.insert(aiMessageLog);
 
-        final int SUMMARY_THRESHOLD = 10; // 定义阈值
-        Integer messageCount = messageMapper.countMessagesBySessionId(sessionId);
 
-        if (messageCount != null && messageCount > SUMMARY_THRESHOLD) {
-            // 触发异步摘要，不阻塞用户响应
+        Date lastSummaryTime = sessionMapper.getLastSummaryTime(sessionId);
+        final int SUMMARY_THRESHOLD = 10; // 定义阈值
+        Integer newMessageCount = messageMapper.countMessagesSinceLastSummary(sessionId, lastSummaryTime);
+
+        if (newMessageCount != null && newMessageCount >= SUMMARY_THRESHOLD) {
             summarizeSession(sessionId);
         }
 
@@ -167,8 +176,8 @@ public class AgentServiceImpl implements AgentService {
     @Async
     public void summarizeSession(Integer sessionId) {
         // 1. 获取需要摘要的消息
-        List<MessageLogPO> messagesToSummarize = messageMapper.getMessagesSinceLastSummary(sessionId);
-
+        Date lastSummaryTime = sessionMapper.getLastSummaryTime(sessionId);
+        List<MessageLogPO> messagesToSummarize = messageMapper.getMessagesSinceLastSummaryByTime(sessionId, lastSummaryTime);
         if (messagesToSummarize.isEmpty()) return;
 
         // 2. 构建摘要提示
@@ -195,8 +204,17 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public List<AgentVO> fetchModel(Integer userId) {
-        return agentMapper.fetchModel(userId);
+    public List<AgentVO> fetchModel() {
+        List<AgentPO> agentPOS = agentMapper.fetchModel();
+        return agentPOS.stream().map(agentPO -> {
+            AgentVO agentVO = new AgentVO();
+            agentVO.setAgentId(agentPO.getAgentId());
+            agentVO.setAgentName(agentPO.getAgentName());
+            agentVO.setDescription(agentPO.getDescription());
+            agentVO.setUsageCount(agentPO.getUsageCount());
+            return agentVO;
+        }).collect(Collectors.toList());
+
     }
 
     /**

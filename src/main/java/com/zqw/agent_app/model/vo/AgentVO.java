@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class AgentVO {
 
-    private Long agentId;
+    private int agentId;
     private String agentName;
     private String description;
     private Integer usageCount;

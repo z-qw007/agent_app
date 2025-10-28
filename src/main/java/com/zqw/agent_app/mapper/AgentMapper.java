@@ -33,5 +33,5 @@ public interface AgentMapper {
      */
     AgentPO getAgentById(Integer agentId);
 
-    List<AgentVO> fetchModel(Integer userId);
+    List<AgentPO> fetchModel();
 }

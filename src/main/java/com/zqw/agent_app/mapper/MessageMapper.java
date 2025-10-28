@@ -4,6 +4,7 @@ import com.zqw.agent_app.model.po.MessageLogPO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -31,4 +32,10 @@ public interface MessageMapper {
     Integer countMessagesBySessionId(@Param("sessionId") Integer sessionId);
 
     List<MessageLogPO> getMessagesSinceLastSummary(@Param("sessionId") Integer sessionId);
+
+    List<MessageLogPO> getMessagesSinceLastSummaryByTime(@Param("sessionId") Integer sessionId, @Param("lastSummaryTime") Date lastSummaryTime);
+
+    Integer countMessagesSinceLastSummary(@Param("sessionId") Integer sessionId, @Param("lastSummaryTime") Date lastSummaryTime);
+
+    List<MessageLogPO> getMessageBySessionId(Integer sessionId);
 }

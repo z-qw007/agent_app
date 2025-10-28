@@ -41,13 +41,10 @@
         WHERE agent_id = #{agentId}
     </select>
 
-    <select id="fetchModel" resultType="com.zqw.agent_app.model.vo.AgentVO">
+    <select id="fetchModel" resultMap="AgentResultMap">
         SELECT agent_id, agent_name, description, usage_count
         FROM agent
         WHERE status = 1
-        <set>
-            <if test="userId != null">AND user_id = #{userId}</if>
-        </set>
     </select>
  
 </mapper>

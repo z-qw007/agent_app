@@ -44,5 +44,6 @@ public interface AgentService {
      * 获取智能体模型
      * @return 智能体模型列表
      */
-    List<AgentVO> fetchModel(Integer userId);
+    List<AgentVO> fetchModel();
+
 }

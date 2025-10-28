@@ -17,8 +17,6 @@ public class AgentController {
     @Resource
     private AgentService agentService;
 
-
-
     /**
      * 获取所有智能体数量
      * @return 智能体数量
@@ -34,8 +32,8 @@ public class AgentController {
      * @return
      */
     @RequestMapping(value = "/fetchModel", method = RequestMethod.GET)
-    public Result<List<AgentVO>> fetchModel(@RequestParam Integer userId) {
-        List<AgentVO> agentList = agentService.fetchModel(userId);
+    public Result<List<AgentVO>> fetchModel() {
+        List<AgentVO> agentList = agentService.fetchModel();
         return Result.success(agentList);
     }
 
