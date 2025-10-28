@@ -12,6 +12,5 @@ public class ChatRequestDTO implements Serializable {
     private Integer sessionId;
     private String message;
     private Integer userId;
-    private String sessionTitle;
 
 }
