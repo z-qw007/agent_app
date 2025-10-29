@@ -38,4 +38,6 @@ public interface AgentMapper {
     int insertAgent(AgentPO agentPO);
 
     List<AgentPO> selectByKeyword(String keyword);
+
+    Boolean updateUsageCountById(AgentPO agentPO);
 }

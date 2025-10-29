@@ -21,6 +21,12 @@
         VALUES (#{agentName}, #{userId}, #{description}, #{prompt}, #{configJson})
     </insert>
 
+    <update id="updateUsageCountById">
+        UPDATE agent
+        SET usage_count = #{usageCount}
+        WHERE agent_id = #{agentId}
+    </update>
+
     <select id="getAllAgentNum" resultType="int">
         SELECT COUNT(*)
         FROM agent
@@ -37,7 +43,7 @@
         FROM  agent
         WHERE status = 1
         ORDER BY usage_count DESC
-        LIMIT 5; -- 筛选出使用次数最多的前5个
+        LIMIT 5;
     </select>
 
     <select id="getAgentById" resultMap="AgentResultMap">

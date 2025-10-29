@@ -55,4 +55,6 @@ public interface AgentService {
     int addAgent(AgentRequestDTO agentAddDTO);
 
     List<AgentVO> selectByKeyword(String keyword);
+
+    boolean addUsageCount(int agentId);
 }

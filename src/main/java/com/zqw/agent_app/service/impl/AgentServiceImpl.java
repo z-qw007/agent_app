@@ -28,6 +28,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -219,7 +220,7 @@ public class AgentServiceImpl implements AgentService {
         double temperature = agentAddDTO.getTemperature();
         double topP = agentAddDTO.getTopP();
 
-        String configJson = String.format("{\"temperature\": %f, \"top_p\": %f}", temperature, topP);
+        String configJson = String.format("{\"temperature\": %.1f, \"top_p\": %.1f}", temperature, topP);
 
         AgentPO agentPO = AgentPO.builder()
                 .agentName(agentAddDTO.getAgentName())
@@ -227,6 +228,8 @@ public class AgentServiceImpl implements AgentService {
                 .description(agentAddDTO.getDescription())
                 .prompt(agentAddDTO.getPrompt())
                 .configJson(configJson)
+                .createdTime(LocalDateTime.now())
+                .updateTime(LocalDateTime.now())
                 .build();
 
         agentMapper.insertAgent(agentPO);
@@ -238,6 +241,18 @@ public class AgentServiceImpl implements AgentService {
     public List<AgentVO> selectByKeyword(String keyword) {
         List<AgentPO> agentPOS = agentMapper.selectByKeyword(keyword);
         return getAgentVOList(agentPOS);
+    }
+
+    @Override
+    public boolean addUsageCount(int agentId) {
+        AgentPO agentPO = agentMapper.getAgentById(agentId);
+        if (agentPO == null) {
+            return false;
+        }
+
+        agentPO.setUsageCount(agentPO.getUsageCount() + 1);
+        agentMapper.updateUsageCountById(agentPO);
+        return true;
     }
 
     /**

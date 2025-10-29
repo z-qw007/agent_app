@@ -20,6 +20,7 @@ public class AgentController {
 
     /**
      * 获取所有智能体数量
+     *
      * @return 智能体数量
      */
     @RequestMapping(value = "/allNum", method = RequestMethod.GET)
@@ -30,6 +31,7 @@ public class AgentController {
 
     /**
      * 模型展示功能
+     *
      * @return
      */
     @RequestMapping(value = "/fetchModel", method = RequestMethod.GET)
@@ -41,6 +43,7 @@ public class AgentController {
 
     /**
      * 获取上一周创建智能体数量
+     *
      * @return 上一周智能体数量
      */
     @RequestMapping(value = "/lastWeekNum", method = RequestMethod.GET)
@@ -51,6 +54,7 @@ public class AgentController {
 
     /**
      * 获取热门模型，根据点击次数排序
+     *
      * @return 热门模型列表
      */
     @RequestMapping(value = "/hotModel", method = RequestMethod.GET)
@@ -89,6 +93,12 @@ public class AgentController {
     public Result<List<AgentVO>> selectByKeyword(@RequestParam String keyword) {
         List<AgentVO> agentVOList = agentService.selectByKeyword(keyword);
         return Result.success(agentVOList);
+    }
+
+    @RequestMapping(value = "/add_usage_count", method = RequestMethod.POST)
+    public Result<Boolean> addUsageCount(@RequestParam int agentId) {
+        boolean isSuccess = agentService.addUsageCount(agentId);
+        return Result.success(isSuccess);
     }
 
 }

@@ -1,10 +1,11 @@
 package com.zqw.agent_app.model.po;
 
-import cn.hutool.core.date.DateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -18,7 +19,7 @@ public class AgentPO {
     private String description;
     private String prompt;
     private String configJson;
-    private DateTime createdTime;
-    private DateTime updateTime;
+    private LocalDateTime createdTime;
+    private LocalDateTime updateTime;
     private int usageCount;
 }
