@@ -16,6 +16,11 @@
         <result property="updateTime" column="update_time" />
     </resultMap>
 
+    <insert id="insertAgent" parameterType="com.zqw.agent_app.model.po.AgentPO" useGeneratedKeys="true" keyProperty="agentId">
+        INSERT INTO agent (agent_name, user_id, description, prompt, config_json)
+        VALUES (#{agentName}, #{userId}, #{description}, #{prompt}, #{configJson})
+    </insert>
+
     <select id="getAllAgentNum" resultType="int">
         SELECT COUNT(*)
         FROM agent
@@ -46,5 +51,14 @@
         FROM agent
         WHERE status = 1
     </select>
- 
+
+    <select id="selectByKeyword" resultMap="AgentResultMap">
+        SELECT agent_id, agent_name, description, usage_count
+        FROM agent
+        WHERE
+            (agent_name LIKE CONCAT('%', #{keyword}, '%')
+             OR description LIKE CONCAT('%', #{keyword}, '%'))
+          AND status = 1
+    </select>
+
 </mapper>

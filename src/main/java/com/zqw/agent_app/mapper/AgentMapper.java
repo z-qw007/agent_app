@@ -34,4 +34,8 @@ public interface AgentMapper {
     AgentPO getAgentById(Integer agentId);
 
     List<AgentPO> fetchModel();
+
+    int insertAgent(AgentPO agentPO);
+
+    List<AgentPO> selectByKeyword(String keyword);
 }

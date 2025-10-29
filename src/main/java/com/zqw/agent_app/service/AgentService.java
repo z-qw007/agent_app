@@ -1,5 +1,6 @@
 package com.zqw.agent_app.service;
 
+import com.zqw.agent_app.model.dto.AgentRequestDTO;
 import com.zqw.agent_app.model.dto.ChatResponseDTO;
 import com.zqw.agent_app.model.po.AgentPO;
 import com.zqw.agent_app.model.vo.AgentVO;
@@ -46,4 +47,12 @@ public interface AgentService {
      */
     List<AgentVO> fetchModel();
 
+    /**
+     * 添加智能体
+     * @param agentAddDTO 智能体信息
+     * @return 是否添加成功
+     */
+    int addAgent(AgentRequestDTO agentAddDTO);
+
+    List<AgentVO> selectByKeyword(String keyword);
 }

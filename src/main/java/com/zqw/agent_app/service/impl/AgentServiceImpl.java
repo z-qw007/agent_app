@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zqw.agent_app.mapper.MessageMapper;
+import com.zqw.agent_app.model.dto.AgentRequestDTO;
 import com.zqw.agent_app.model.dto.ChatResponseDTO;
 import com.zqw.agent_app.model.po.MessageLogPO;
 import com.zqw.agent_app.model.vo.AgentVO;
@@ -23,7 +24,6 @@ import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
@@ -206,6 +206,46 @@ public class AgentServiceImpl implements AgentService {
     @Override
     public List<AgentVO> fetchModel() {
         List<AgentPO> agentPOS = agentMapper.fetchModel();
+        return getAgentVOList(agentPOS);
+    }
+
+    /**
+     * 新增模型
+     * @param agentAddDTO 新增模型请求类
+     * @return 是否添加成功
+     */
+    @Override
+    public int addAgent(AgentRequestDTO agentAddDTO) {
+        double temperature = agentAddDTO.getTemperature();
+        double topP = agentAddDTO.getTopP();
+
+        String configJson = String.format("{\"temperature\": %f, \"top_p\": %f}", temperature, topP);
+
+        AgentPO agentPO = AgentPO.builder()
+                .agentName(agentAddDTO.getAgentName())
+                .userId(agentAddDTO.getUserId())
+                .description(agentAddDTO.getDescription())
+                .prompt(agentAddDTO.getPrompt())
+                .configJson(configJson)
+                .build();
+
+        agentMapper.insertAgent(agentPO);
+
+        return agentPO.getAgentId();
+    }
+
+    @Override
+    public List<AgentVO> selectByKeyword(String keyword) {
+        List<AgentPO> agentPOS = agentMapper.selectByKeyword(keyword);
+        return getAgentVOList(agentPOS);
+    }
+
+    /**
+     * 将agentPO列表转换为agentVO列表
+     * @param agentPOS agentPO列表
+     * @return agentVO列表
+     */
+    private List<AgentVO> getAgentVOList(List<AgentPO> agentPOS) {
         return agentPOS.stream().map(agentPO -> {
             AgentVO agentVO = new AgentVO();
             agentVO.setAgentId(agentPO.getAgentId());
@@ -214,7 +254,6 @@ public class AgentServiceImpl implements AgentService {
             agentVO.setUsageCount(agentPO.getUsageCount());
             return agentVO;
         }).collect(Collectors.toList());
-
     }
 
     /**

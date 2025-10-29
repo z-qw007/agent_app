@@ -1,6 +1,7 @@
 package com.zqw.agent_app.controller;
 
 import com.zqw.agent_app.common.Result;
+import com.zqw.agent_app.model.dto.AgentRequestDTO;
 import com.zqw.agent_app.model.dto.ChatRequestDTO;
 import com.zqw.agent_app.model.dto.ChatResponseDTO;
 import com.zqw.agent_app.model.po.AgentPO;
@@ -77,4 +78,17 @@ public class AgentController {
             return Result.failed("AI服务处理失败：" + e.getMessage());
         }
     }
+
+    @RequestMapping(value = "/add_agent", method = RequestMethod.POST)
+    public Result<Integer> addAgent(@RequestBody AgentRequestDTO agentAddDTO) {
+        int agentId = agentService.addAgent(agentAddDTO);
+        return Result.success(agentId);
+    }
+
+    @RequestMapping(value = "/select_by_keyword", method = RequestMethod.GET)
+    public Result<List<AgentVO>> selectByKeyword(@RequestParam String keyword) {
+        List<AgentVO> agentVOList = agentService.selectByKeyword(keyword);
+        return Result.success(agentVOList);
+    }
+
 }
