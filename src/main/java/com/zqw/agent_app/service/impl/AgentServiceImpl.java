@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zqw.agent_app.mapper.MessageMapper;
 import com.zqw.agent_app.model.dto.AgentRequestDTO;
+import com.zqw.agent_app.model.dto.AgentUpdateRequestDTO;
 import com.zqw.agent_app.model.dto.ChatResponseDTO;
 import com.zqw.agent_app.model.po.MessageLogPO;
 import com.zqw.agent_app.model.vo.AgentVO;
@@ -252,6 +253,38 @@ public class AgentServiceImpl implements AgentService {
 
         agentPO.setUsageCount(agentPO.getUsageCount() + 1);
         agentMapper.updateUsageCountById(agentPO);
+        return true;
+    }
+
+    @Override
+    public List<AgentVO> fetchModelByUserId(int userId) {
+        List<AgentPO> agentPOS = agentMapper.fetchModelByUserId(userId);
+        return getAgentVOList(agentPOS);
+    }
+
+    @Override
+    public boolean deleteAgent(int agentId) {
+        AgentPO agent = agentMapper.getAgentById(agentId);
+        agent.setStatus(0);
+        agent.setUpdateTime(LocalDateTime.now());
+        agentMapper.deleteAgent(agent);
+        return true;
+    }
+
+    @Override
+    public boolean updateAgent(AgentUpdateRequestDTO agentUpdateRequestDTO) {
+        AgentPO agentPO = agentMapper.getAgentById(agentUpdateRequestDTO.getAgentId());
+        agentPO.setAgentName(agentUpdateRequestDTO.getAgentName());
+        agentPO.setDescription(agentUpdateRequestDTO.getDescription());
+        agentPO.setPrompt(agentUpdateRequestDTO.getPrompt());
+
+        Double topP = agentUpdateRequestDTO.getTopP();
+        Double temperature = agentUpdateRequestDTO.getTemperature();
+
+        String configJson = String.format("{\"temperature\": %.1f, \"top_p\": %.1f}", temperature, topP);
+        agentPO.setConfigJson(configJson);
+        agentPO.setUpdateTime(LocalDateTime.now());
+        agentMapper.updateAgent(agentPO);
         return true;
     }
 

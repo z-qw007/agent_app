@@ -22,4 +22,5 @@ public class AgentPO {
     private LocalDateTime createdTime;
     private LocalDateTime updateTime;
     private int usageCount;
+    private int status;
 }

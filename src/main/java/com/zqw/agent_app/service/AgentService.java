@@ -1,6 +1,7 @@
 package com.zqw.agent_app.service;
 
 import com.zqw.agent_app.model.dto.AgentRequestDTO;
+import com.zqw.agent_app.model.dto.AgentUpdateRequestDTO;
 import com.zqw.agent_app.model.dto.ChatResponseDTO;
 import com.zqw.agent_app.model.po.AgentPO;
 import com.zqw.agent_app.model.vo.AgentVO;
@@ -57,4 +58,10 @@ public interface AgentService {
     List<AgentVO> selectByKeyword(String keyword);
 
     boolean addUsageCount(int agentId);
+
+    List<AgentVO> fetchModelByUserId(int userId);
+
+    boolean deleteAgent(int agentId);
+
+    boolean updateAgent(AgentUpdateRequestDTO agentUpdateRequestDTO);
 }

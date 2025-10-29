@@ -2,6 +2,7 @@ package com.zqw.agent_app.controller;
 
 import com.zqw.agent_app.common.Result;
 import com.zqw.agent_app.model.dto.AgentRequestDTO;
+import com.zqw.agent_app.model.dto.AgentUpdateRequestDTO;
 import com.zqw.agent_app.model.dto.ChatRequestDTO;
 import com.zqw.agent_app.model.dto.ChatResponseDTO;
 import com.zqw.agent_app.model.po.AgentPO;
@@ -37,6 +38,17 @@ public class AgentController {
     @RequestMapping(value = "/fetchModel", method = RequestMethod.GET)
     public Result<List<AgentVO>> fetchModel() {
         List<AgentVO> agentList = agentService.fetchModel();
+        return Result.success(agentList);
+    }
+
+    /**
+     * 个人空间模型展示
+     *
+     * @return
+     */
+    @RequestMapping(value = "/fetchModelByUserId", method = RequestMethod.GET)
+    public Result<List<AgentVO>> fetchModelByUserId(@RequestParam int userId) {
+        List<AgentVO> agentList = agentService.fetchModelByUserId(userId);
         return Result.success(agentList);
     }
 
@@ -98,6 +110,18 @@ public class AgentController {
     @RequestMapping(value = "/add_usage_count", method = RequestMethod.POST)
     public Result<Boolean> addUsageCount(@RequestParam int agentId) {
         boolean isSuccess = agentService.addUsageCount(agentId);
+        return Result.success(isSuccess);
+    }
+
+    @RequestMapping(value = "/delete_agent", method = RequestMethod.POST)
+    public Result<Boolean> deleteAgent(@RequestParam int agentId) {
+        boolean isSuccess = agentService.deleteAgent(agentId);
+        return Result.success(isSuccess);
+    }
+
+    @RequestMapping(value = "/update_agent", method = RequestMethod.POST)
+    public Result<Boolean> updateAgent(@RequestBody AgentUpdateRequestDTO agentUpdateRequestDTO) {
+        boolean isSuccess = agentService.updateAgent(agentUpdateRequestDTO);
         return Result.success(isSuccess);
     }
 

@@ -26,6 +26,17 @@
         SET usage_count = #{usageCount}
         WHERE agent_id = #{agentId}
     </update>
+    <update id="updateAgent">
+        UPDATE agent
+        SET agent_name = #{agentName}, description = #{description}, prompt = #{prompt}, config_json = #{configJson}, update_time = #{updateTime}
+        WHERE agent_id = #{agentId}
+    </update>
+
+    <update id="deleteAgent">
+        UPDATE agent
+        SET status = 0, update_time = #{updateTime}
+        WHERE agent_id = #{agentId}
+    </update>
 
     <select id="getAllAgentNum" resultType="int">
         SELECT COUNT(*)
@@ -64,6 +75,13 @@
         WHERE
             (agent_name LIKE CONCAT('%', #{keyword}, '%')
              OR description LIKE CONCAT('%', #{keyword}, '%'))
+          AND status = 1
+    </select>
+
+    <select id="fetchModelByUserId" resultMap="AgentResultMap">
+        SELECT agent_id, agent_name, description, usage_count
+        FROM agent
+        WHERE user_id = #{userId}
           AND status = 1
     </select>
 

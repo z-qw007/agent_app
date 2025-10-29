@@ -40,4 +40,10 @@ public interface AgentMapper {
     List<AgentPO> selectByKeyword(String keyword);
 
     Boolean updateUsageCountById(AgentPO agentPO);
+
+    List<AgentPO> fetchModelByUserId(int userId);
+
+    boolean updateAgent(AgentPO agent);
+
+    boolean deleteAgent(AgentPO agent);
 }
