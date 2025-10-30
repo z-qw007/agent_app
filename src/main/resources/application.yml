@@ -46,3 +46,10 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
+
+logging:
+  file:
+    path: ./logs
+  level:
+    root: INFO
+    com.zqw.agent_app: INFO

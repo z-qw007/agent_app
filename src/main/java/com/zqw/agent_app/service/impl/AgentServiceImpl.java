@@ -4,6 +4,7 @@ import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zqw.agent_app.annotation.Log;
 import com.zqw.agent_app.mapper.MessageMapper;
 import com.zqw.agent_app.model.dto.AgentRequestDTO;
 import com.zqw.agent_app.model.dto.AgentUpdateRequestDTO;
@@ -11,6 +12,7 @@ import com.zqw.agent_app.model.dto.ChatResponseDTO;
 import com.zqw.agent_app.model.po.MessageLogPO;
 import com.zqw.agent_app.model.vo.AgentVO;
 import io.micrometer.common.util.StringUtils;
+import org.aspectj.lang.annotation.Around;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -71,6 +73,7 @@ public class AgentServiceImpl implements AgentService {
         return agentMapper.getLastWeekAgentNum();
     }
 
+    @Log(value = "获取热门模型")
     @Override
     public List<AgentPO> getHotModel() {
         return agentMapper.getHotModel();
