@@ -11,6 +11,8 @@ import com.zqw.agent_app.model.dto.ChatResponseDTO;
 import com.zqw.agent_app.model.po.MessageLogPO;
 import com.zqw.agent_app.model.vo.AgentVO;
 import io.micrometer.common.util.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -34,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @EnableAsync
@@ -42,6 +45,9 @@ public class AgentServiceImpl implements AgentService {
 
     @Resource
     private ChatClient chatClient;
+
+    @Resource
+    private RedissonClient redissonClient;
 
     @Resource
     private ObjectMapper objectMapper;
@@ -89,88 +95,112 @@ public class AgentServiceImpl implements AgentService {
             sessionId = sessionPO.getSessionId();
         }
 
-        // 构建消息列表 (上下文核心逻辑)
-        List<Message> messages = new ArrayList<>();
+        // 分布式锁，防止同一个用户在同一个会话中同时进行多次请求
+        String lockKey = "lock:chat:session:" + sessionId;
+        RLock lock = redissonClient.getLock(lockKey);
 
-        // 添加Agent的系统提示词
-        messages.add(new SystemMessage(agentPO.getPrompt()));
-
-        // 添加历史摘要
-        SessionPO sessionPO = sessionMapper.getById(sessionId);
-        if (sessionPO != null && !StringUtils.isEmpty(sessionPO.getContextSummary())) {
-            messages.add(new AssistantMessage(sessionPO.getContextSummary()));
-        }
-
-        // 添加最近10条消息
-        List<MessageLogPO> recentHistory = messageMapper.getRecentMessages(sessionId, 10);
-        recentHistory.forEach(log -> {
-            if ("USER".equals(log.getRole())) {
-                messages.add(new UserMessage(log.getContent()));
-            } else if ("AI".equals(log.getRole())) {
-                messages.add(new AssistantMessage(log.getContent()));
-            }
-        });
-
-        // 添加当前用户信息
-        messages.add(new UserMessage(userMessage));
-
-        Map<String, Object> configMap = null;
         try {
-            configMap = objectMapper.readValue(agentPO.getConfigJson(), new TypeReference<Map<String, Object>>() {});
-        } catch (JsonProcessingException e) {
-            throw new BusinessException(ResultCode.FAILED, "解析配置失败");
+            // 设置等待时间（如10秒）和租约时间（如30秒），防止死锁
+            boolean locked = lock.tryLock(10, 30, TimeUnit.SECONDS);
+
+            if (!locked) {
+                // 如果获取锁失败，表示该会话已有其他请求在处理
+                throw new BusinessException(ResultCode.BUSINESS_ERROR, "该会话已有其他请求在处理，请稍后再试");
+            }
+
+            // 构建消息列表 (上下文核心逻辑)
+            List<Message> messages = new ArrayList<>();
+
+            // 添加Agent的系统提示词
+            messages.add(new SystemMessage(agentPO.getPrompt()));
+
+            // 添加历史摘要
+            SessionPO sessionPO = sessionMapper.getById(sessionId);
+            if (sessionPO != null && !StringUtils.isEmpty(sessionPO.getContextSummary())) {
+                messages.add(new AssistantMessage(sessionPO.getContextSummary()));
+            }
+
+            // 添加最近10条消息
+            List<MessageLogPO> recentHistory = messageMapper.getRecentMessages(sessionId, 10);
+            recentHistory.forEach(log -> {
+                if ("USER".equals(log.getRole())) {
+                    messages.add(new UserMessage(log.getContent()));
+                } else if ("AI".equals(log.getRole())) {
+                    messages.add(new AssistantMessage(log.getContent()));
+                }
+            });
+
+            // 添加当前用户信息
+            messages.add(new UserMessage(userMessage));
+
+            Map<String, Object> configMap = null;
+            try {
+                configMap = objectMapper.readValue(agentPO.getConfigJson(), new TypeReference<Map<String, Object>>() {});
+            } catch (JsonProcessingException e) {
+                throw new BusinessException(ResultCode.FAILED, "解析配置失败");
+            }
+
+            // 设置模型参数
+            DashScopeChatOptions options = DashScopeChatOptions.builder()
+                    .withTemperature(getFloatValueFromConfig(configMap, "temperature", 0.70d))
+                    .withTopP(getFloatValueFromConfig(configMap, "top_p", 0.80d))
+                    .build();
+
+            // 调用 AI 客户端
+            ChatResponse response = chatClient.prompt()
+                    .messages(messages)
+                    .options(options)
+                    .call()
+                    .chatResponse();
+
+            // 获取响应
+            String aiResponse = response.getResult().getOutput().getText();
+
+            // 存储消息记录
+            // 用户消息
+            MessageLogPO userMessageLog = MessageLogPO.builder()
+                    .sessionId(sessionId)
+                    .role("USER")
+                    .content(userMessage)
+                    .build();
+
+            // AI 消息
+            MessageLogPO aiMessageLog = MessageLogPO.builder()
+                    .sessionId(sessionId)
+                    .role("AI")
+                    .content(aiResponse)
+                    .build();
+
+            // 插入库表
+            messageMapper.insert(userMessageLog);
+            messageMapper.insert(aiMessageLog);
+
+
+            Date lastSummaryTime = sessionMapper.getLastSummaryTime(sessionId);
+            final int SUMMARY_THRESHOLD = 10; // 定义阈值
+            Integer newMessageCount = messageMapper.countMessagesSinceLastSummary(sessionId, lastSummaryTime);
+
+            if (newMessageCount != null && newMessageCount >= SUMMARY_THRESHOLD) {
+                summarizeSession(sessionId);
+            }
+
+            // 构建返回响应类
+            ChatResponseDTO chatResponseDTO = new ChatResponseDTO();
+            chatResponseDTO.setAiContent(aiResponse);
+            chatResponseDTO.setSessionId(sessionId);
+
+            return chatResponseDTO;
+
+        } catch (InterruptedException e) {
+            // 处理线程中断异常
+            Thread.currentThread().interrupt();
+            throw new BusinessException(ResultCode.FAILED, "系统错误，处理线程中断");
+        } finally {
+            // 确保锁一定会被释放，且只释放当前线程持有的锁
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
-
-        // 设置模型参数
-        DashScopeChatOptions options = DashScopeChatOptions.builder()
-                .withTemperature(getFloatValueFromConfig(configMap, "temperature", 0.70d))
-                .withTopP(getFloatValueFromConfig(configMap, "top_p", 0.80d))
-                .build();
-
-        // 调用 AI 客户端
-        ChatResponse response = chatClient.prompt()
-                .messages(messages)
-                .options(options)
-                .call()
-                .chatResponse();
-
-        // 获取响应
-        String aiResponse = response.getResult().getOutput().getText();
-
-        // 存储消息记录
-        // 用户消息
-        MessageLogPO userMessageLog = MessageLogPO.builder()
-                .sessionId(sessionId)
-                .role("USER")
-                .content(userMessage)
-                .build();
-
-        // AI 消息
-        MessageLogPO aiMessageLog = MessageLogPO.builder()
-                .sessionId(sessionId)
-                .role("AI")
-                .content(aiResponse)
-                .build();
-
-        // 插入库表
-        messageMapper.insert(userMessageLog);
-        messageMapper.insert(aiMessageLog);
-
-
-        Date lastSummaryTime = sessionMapper.getLastSummaryTime(sessionId);
-        final int SUMMARY_THRESHOLD = 10; // 定义阈值
-        Integer newMessageCount = messageMapper.countMessagesSinceLastSummary(sessionId, lastSummaryTime);
-
-        if (newMessageCount != null && newMessageCount >= SUMMARY_THRESHOLD) {
-            summarizeSession(sessionId);
-        }
-
-        // 构建返回响应类
-        ChatResponseDTO chatResponseDTO = new ChatResponseDTO();
-        chatResponseDTO.setAiContent(aiResponse);
-        chatResponseDTO.setSessionId(sessionId);
-
-        return chatResponseDTO;
 
     }
 
